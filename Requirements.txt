@@ -1,19 +1,21 @@
 Game: Tic-Tac-Toe
 
-Played by two players from the same console
-Field size 3 cells x 3 cells
-At the beginning of the game, the system asks for a username
-If the username is registered, then the player starts playing
-If the username is not registered, then a player have to enter the Name, Age
+1. Played by two players from the same console
+2. Field size 3 cells x 3 cells
+3. At the beginning of the game, the system asks for a username
+4. If the username is registered, then the player starts playing
+5. If the username is not registered, then a player have to enter the Name, Age
  
 Rules of the game: 
-The coordinates of the cell x and y have to be requested from each player
-Cells horizontally occupied by one player have to be checked.
-Cells vertically occupied by one player have to be checked.
-Cells diagonally occupied by one player have to be checked.
-The winning position have to be checked horizontally, vertically, diagonally
-If the three cells horizontally or vertically or diagonally are occupied by one player, then VICTORY
-If all cells are occupied and there is no winning position, then a draw
+1. The coordinates of the cell x and y have to be requested from each player
+2. If x+y position is occupied, system asks to repeat the move
+3. After each move, a board should be printed
+4. Cells horizontally occupied by one player have to be checked.
+5. Cells vertically occupied by one player have to be checked.
+6. Cells diagonally occupied by one player have to be checked.
+7. The winning position have to be checked horizontally, vertically, diagonally
+8. If the three cells horizontally or vertically or diagonally are occupied by one player, then VICTORY
+9. If all cells are occupied and there is no winning position, then a draw
 
 
 The data of the players must be saved in the database - username, number of moves.
