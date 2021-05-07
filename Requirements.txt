@@ -16,8 +16,6 @@ Rules of the game:
 7. The winning position have to be checked horizontally, vertically, diagonally
 8. If the three cells horizontally or vertically or diagonally are occupied by one player, then VICTORY
 9. If all cells are occupied and there is no winning position, then a draw
-
-
-The data of the players must be saved in the database - username, number of moves.
+10.The data of the players must be saved in the database - username, number of moves.
 
 
