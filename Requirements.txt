@@ -18,4 +18,10 @@ Rules of the game:
 9. If all cells are occupied and there is no winning position, then a draw
 10.The data of the players must be saved in the database - username, number of moves.
 
-
+Vlad: 
+1. Points  4, 5, 6, 7, 8 repeating themselves. The 7 would be enogh :)
+2. I would like to make it possible for a user to take see all moves in a certain game.
+For example if current user is A
+then he can see all the moves of a game where he played
+So he is presented with list of games where he played
+and then he choses one and sees all the moves that were done there
