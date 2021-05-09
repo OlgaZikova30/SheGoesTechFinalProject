@@ -1,12 +1,35 @@
 package main;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 public class TicTacToe {
+    // JDBC driver name and database URL
+    private static final String JDBC_DRIVER = "org.h2.Driver";
+    private static final String DB_URL = "jdbc:h2:./tictactoe";
+
+    //  Database credentials
+    private static final String USER = "sa";
+    private static final String PASS = "";
+
+    private static Scanner scanner = new Scanner(System.in);
+
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(DB_URL, USER, PASS);
+    }
+
     public static void main(String[] args) {
-        //Play TicTacToe
-        TicTacToe game = new TicTacToe();
-        game.play();
+        try (Connection connection = getConnection()) {
+            //Play TicTacToe
+            TicTacToe game = new TicTacToe();
+            game.play(connection);
+
+        } catch (SQLException throwables) {
+            System.out.println(throwables.getMessage());
+            throwables.printStackTrace();
+        }
     }
 
     //NR.1 Check horizontal position. True - if one of the horizontal has three cells in a row
@@ -63,13 +86,13 @@ public class TicTacToe {
         boolean empty = false;
         for (int[] ints : field) {
             for (int j = 0; j < field[1].length; j++) {
-                if (ints[j] == -1) {
+                if (ints[j] == 0) {
                     empty = true;
                     break;
                 }
             }
-            if (!isWinPosition(field, 0) &&
-                    !isWinPosition(field, 1) &&
+            if (!isWinPosition(field, 1) &&
+                    !isWinPosition(field, 2) &&
                     !empty) {
                 return true;
             }
@@ -78,12 +101,12 @@ public class TicTacToe {
     }
 
     //NR. 6 Create two dimensional array
-    //-1 is mark of empty cell
+    //0 is mark of empty cell
     public int[][] createField() {
         int[][] board = new int[3][3];
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
-                board[i][j] = -1;
+                board[i][j] = 0;
             }
         }
         return board;
@@ -110,41 +133,70 @@ public class TicTacToe {
         }
     }
 
-    //NR. determine the order of moves of players 0 or 1, check if cell is not empty, check winner
-    public void play() {
+    //NR. determine the order of moves of players 1 or 2, check if cell is not empty, check winner
+    public void play(Connection connection) throws SQLException  {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Please enter the nickname (Player 1):");
+        String player1 = scanner.nextLine();
+// select no player
+        System.out.println("Please enter the nickname (Player 2):");
+        String player2 = scanner.nextLine();
+
         int[][] field = createField();
+
+        printFieldToConsole(field);
+
         while (true) {
-            System.out.println("Player 0:");
-            printFieldToConsole(field);
+
+            //printFieldToConsole(field);
             while (true) {
                 Move move0 = getNextMove();
-                if (field[move0.getX()][move0.getY()] != -1) {
+                if(move0.getX() >= field.length || move0.getX() < 0) {
+                    System.out.println("Not valid value. Please enter the value in range 0 to 2!");
+                    continue;
+                }
+                else if(move0.getY() >= field[0].length || move0.getY() < 0) {
+                    System.out.println("Not valid value. Please enter the value in range 0 to 2!");
+                    continue;
+                }
+                else if (field[move0.getX()][move0.getY()] != 0) {
                     System.out.println("Cell not empty! Please select a another one!");
                     continue;
                 }
-                field[move0.getX()][move0.getY()] = 0;
-                break;
-            }
-            printFieldToConsole(field);
-            if (isWinPosition(field, 0)) {
-                System.out.println("Player 0 WIN!");
-                break;
-            }
-
-            System.out.println("Player 1:");
-            printFieldToConsole(field);
-            while (true) {
-                Move move1 = getNextMove();
-                if (field[move1.getX()][move1.getY()] != -1) {
-                    System.out.println("Cell not empty! Please select a another one!");
-                    continue;
-                }
-                field[move1.getX()][move1.getY()] = 1;
+                field[move0.getX()][move0.getY()] = 1;
                 break;
             }
             printFieldToConsole(field);
             if (isWinPosition(field, 1)) {
                 System.out.println("Player 1 WIN!");
+
+
+                break;
+            }
+
+
+           // printFieldToConsole(field);
+            while (true) {
+                Move move1 = getNextMove();
+                if(move1.getX() >= field.length || move1.getX() < 0) {
+                    System.out.println("Not valid value. Please enter the value in range 0 to 2!");
+                    continue;
+                }
+                else if(move1.getY() >= field[0].length || move1.getY() < 0) {
+                    System.out.println("Not valid value. Please enter the value in range 0 to 2!");
+                    continue;
+                }
+                else if (field[move1.getX()][move1.getY()] != 0) {
+                    System.out.println("Cell not empty! Please select a another one!");
+                    continue;
+                }
+                field[move1.getX()][move1.getY()] = 2;
+                break;
+            }
+            printFieldToConsole(field);
+            if (isWinPosition(field, 2)) {
+                System.out.println("Player 2 WIN!");
                 break;
             }
         }
