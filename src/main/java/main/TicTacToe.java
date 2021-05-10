@@ -3,6 +3,7 @@ package main;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class TicTacToe {
@@ -84,30 +85,27 @@ public class TicTacToe {
     //NR.5 - Check Draw position
     public boolean isDrawPosition(int[][] field) {
         boolean empty = false;
-        for (int[] ints : field) {
-            for (int j = 0; j < field[1].length; j++) {
-                if (ints[j] == 0) {
-                    empty = true;
-                    break;
+            for (int i = 0; i < field.length; i++) {
+                for (int j = 0; j < field.length; j++) {
+                    if (field[i][j] == 0) {
+                        empty = true;
+                        break;
+                    }
                 }
             }
-            if (!isWinPosition(field, 1) &&
-                    !isWinPosition(field, 2) &&
-                    !empty) {
+            if (!empty && !isWinPosition(field, 1) && !isWinPosition(field, 2)) {
                 return true;
             }
+            return false;
         }
-        return false;
-    }
+
 
     //NR. 6 Create two dimensional array
     //0 is mark of empty cell
     public int[][] createField() {
         int[][] board = new int[3][3];
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                board[i][j] = 0;
-            }
+        for (int[] ints : board) {
+            Arrays.fill(ints, 0);
         }
         return board;
     }
@@ -119,37 +117,37 @@ public class TicTacToe {
         int x = scanner.nextInt();
         System.out.print("Enter y: ");
         int y = scanner.nextInt();
-        Move move = new Move(x, y);
-        return move;
+        return new Move(x, y);
     }
 
     //NR.8 - Print field after each move
     public void printFieldToConsole(int[][] field) {
         for (int[] ints : field) {
-            for (int j = 0; j < ints.length; j++) {
-                System.out.print(ints[j] + "\t");
+            for (int anInt : ints) {
+                System.out.print(anInt + "\t");
             }
             System.out.println();
         }
+
     }
 
-    //NR. determine the order of moves of players 1 or 2, check if cell is not empty, check winner
+    //NR. 9 determine the order of moves of players 1 or 2, check if cell is not empty, check winner
     public void play(Connection connection) throws SQLException  {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Please enter the nickname (Player 1):");
         String player1 = scanner.nextLine();
+
 // select no player
         System.out.println("Please enter the nickname (Player 2):");
         String player2 = scanner.nextLine();
 
         int[][] field = createField();
 
-        printFieldToConsole(field);
-
         while (true) {
+            System.out.println("Player 1: ");
+            printFieldToConsole(field);
 
-            //printFieldToConsole(field);
             while (true) {
                 Move move0 = getNextMove();
                 if(move0.getX() >= field.length || move0.getX() < 0) {
@@ -167,16 +165,17 @@ public class TicTacToe {
                 field[move0.getX()][move0.getY()] = 1;
                 break;
             }
-            printFieldToConsole(field);
+            if (isDrawPosition(field)) {
+                System.out.println("DRAW 1");
+                break;
+           }
             if (isWinPosition(field, 1)) {
                 System.out.println("Player 1 WIN!");
-
-
                 break;
             }
 
-
-           // printFieldToConsole(field);
+            System.out.println("Player 2: ");
+            printFieldToConsole(field);
             while (true) {
                 Move move1 = getNextMove();
                 if(move1.getX() >= field.length || move1.getX() < 0) {
@@ -194,11 +193,16 @@ public class TicTacToe {
                 field[move1.getX()][move1.getY()] = 2;
                 break;
             }
-            printFieldToConsole(field);
+         //   printFieldToConsole(field);
             if (isWinPosition(field, 2)) {
                 System.out.println("Player 2 WIN!");
                 break;
             }
+            if (isDrawPosition(field)) {
+                System.out.println("DRAW 2");
+               break;
+           }
         }
+
     }
 }
