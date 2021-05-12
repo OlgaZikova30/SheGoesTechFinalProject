@@ -4,7 +4,6 @@
 -- - Player surname
 -- - Player age
 -- - Games played by player
--- - Moves made by player
 
 CREATE TABLE IF NOT EXISTS Players (
     nickname VARCHAR(255) PRIMARY KEY,
@@ -23,6 +22,11 @@ CREATE TABLE IF NOT EXISTS Games (
 INSERT INTO Players
 (nickname,name, surname, age) VALUES
 (?, ?, ?, ?);
+
+-- add game
+INSERT INTO Games
+(nickname,games games_played, moves_made) VALUES
+(?, ?, ?);
 
 -- list all games of one player
 SELECT *

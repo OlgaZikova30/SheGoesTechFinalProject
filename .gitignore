@@ -1,5 +1,5 @@
 /.idea/
 /target/
-/db.iml
-/tictactoe.mv.db
-/tictactoe.trace.db
+db.iml
+tictactoe.db
+tictactoe.mv.db
