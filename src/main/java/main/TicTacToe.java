@@ -166,7 +166,7 @@ public class TicTacToe {
                 break;
             }
             if (isDrawPosition(field)) {
-                System.out.println("DRAW 1");
+                System.out.println("Tie result!");
                 break;
            }
             if (isWinPosition(field, 1)) {
@@ -199,7 +199,7 @@ public class TicTacToe {
                 break;
             }
             if (isDrawPosition(field)) {
-                System.out.println("DRAW 2");
+                System.out.println("Tie result!");
                break;
            }
         }
