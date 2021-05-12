@@ -1,1 +1,5 @@
 /.idea/
+/target/
+db.iml
+tictactoe.db
+tictactoe.mv.db
