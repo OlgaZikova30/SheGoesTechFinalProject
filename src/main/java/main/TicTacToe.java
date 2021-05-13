@@ -1,8 +1,6 @@
 package main;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -15,6 +13,27 @@ public class TicTacToe {
     private static final String USER = "sa";
     private static final String PASS = "";
 
+    public static final String CREATE_TABLE =
+            "CREATE TABLE IF NOT EXISTS Players (" +
+                    "    nickname VARCHAR(255) PRIMARY KEY," +
+                    "    name VARCHAR(255) NOT NULL," +
+                    "    surname VARCHAR(255)NOT NULL," +
+                    "    age INT NOT NULL" +
+                    ");";
+
+    public static final String CREATE_TABLE1 =
+            "CREATE TABLE IF NOT EXISTS Games (" +
+                    "    nickname VARCHAR(255) PRIMARY KEY," +
+                    "    games_played INT," +
+                    "    moves_made INT" +
+
+                    ");";
+    public static final String ADD_USERNAME = "INSERT INTO Players" +
+            " (nickname,name,surname,age) VALUES" +
+            "(?, ?, ?, ?);";
+
+    public static final String CHECK_USERNAME = "SELECT FROM Players WHERE nickname = ?;";
+
     private static Scanner scanner = new Scanner(System.in);
 
     public static Connection getConnection() throws SQLException {
@@ -25,7 +44,9 @@ public class TicTacToe {
         try (Connection connection = getConnection()) {
             //Play TicTacToe
             TicTacToe game = new TicTacToe();
+            prepareDatabase(connection);
             game.play(connection);
+
 
         } catch (SQLException throwables) {
             System.out.println(throwables.getMessage());
@@ -33,6 +54,21 @@ public class TicTacToe {
         }
     }
 
+    private static void prepareDatabase(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            int update = statement.executeUpdate(CREATE_TABLE);
+        }
+    }
+
+    private static void ADD_USERNAME (Connection connection) throws SQLException {
+        try (PreparedStatement statement = connection.prepareStatement(ADD_USERNAME)) {
+          statement.setString(1,"sandra");
+          statement.setString(2, "sandra");
+          statement.setString(3, "krugalauza");
+          statement.setInt(4, 33);
+          statement.execute();
+        }
+    }
     //NR.1 Check horizontal position. True - if one of the horizontal has three cells in a row
     //    occupied by the sign of the specified player (int playerToCheck)
     public boolean isWinPositionForHorizontals(int[][] field, int playerToCheck) {
@@ -85,19 +121,19 @@ public class TicTacToe {
     //NR.5 - Check Draw position
     public boolean isDrawPosition(int[][] field) {
         boolean empty = false;
-            for (int i = 0; i < field.length; i++) {
-                for (int j = 0; j < field.length; j++) {
-                    if (field[i][j] == 0) {
-                        empty = true;
-                        break;
-                    }
+        for (int i = 0; i < field.length; i++) {
+            for (int j = 0; j < field.length; j++) {
+                if (field[i][j] == 0) {
+                    empty = true;
+                    break;
                 }
             }
-            if (!empty && !isWinPosition(field, 1) && !isWinPosition(field, 2)) {
-                return true;
-            }
-            return false;
         }
+        if (!empty && !isWinPosition(field, 1) && !isWinPosition(field, 2)) {
+            return true;
+        }
+        return false;
+    }
 
 
     //NR. 6 Create two dimensional array
@@ -132,77 +168,94 @@ public class TicTacToe {
     }
 
     //NR. 9 determine the order of moves of players 1 or 2, check if cell is not empty, check winner
-    public void play(Connection connection) throws SQLException  {
+    public void play(Connection connection) throws SQLException {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Please enter the nickname (Player 1):");
+        System.out.println("Please enter the username (Player 1):");
         String player1 = scanner.nextLine();
+        try (PreparedStatement statement = connection.prepareStatement(CHECK_USERNAME)) {
+            statement.setString(1, player1);
+            try (ResultSet rs = statement.executeQuery() ) {
+                String usernameCounter;
+                while (rs.next()) {
+                    usernameCounter = rs.getString(1);
+                    if (usernameCounter.equalsIgnoreCase(player1)) {
+                        System.out.println("Username is already registered!");
+                    }
+                    else {
+                        System.out.println("Please register!");
+                        try (PreparedStatement statement1 = connection.prepareStatement(ADD_USERNAME)){
 
-// select no player
-        System.out.println("Please enter the nickname (Player 2):");
-        String player2 = scanner.nextLine();
+                        }
 
-        int[][] field = createField();
-
-        while (true) {
-            System.out.println("Player 1: ");
-            printFieldToConsole(field);
-
-            while (true) {
-                Move move0 = getNextMove();
-                if(move0.getX() >= field.length || move0.getX() < 0) {
-                    System.out.println("Not valid value. Please enter the value in range 0 to 2!");
-                    continue;
+                    }
                 }
-                else if(move0.getY() >= field[0].length || move0.getY() < 0) {
-                    System.out.println("Not valid value. Please enter the value in range 0 to 2!");
-                    continue;
-                }
-                else if (field[move0.getX()][move0.getY()] != 0) {
-                    System.out.println("Cell not empty! Please select a another one!");
-                    continue;
-                }
-                field[move0.getX()][move0.getY()] = 1;
-                break;
-            }
-            if (isDrawPosition(field)) {
-                System.out.println("Tie result!");
-                break;
-           }
-            if (isWinPosition(field, 1)) {
-                System.out.println("Player 1 WIN!");
-                break;
             }
 
-            System.out.println("Player 2: ");
-            printFieldToConsole(field);
-            while (true) {
-                Move move1 = getNextMove();
-                if(move1.getX() >= field.length || move1.getX() < 0) {
-                    System.out.println("Not valid value. Please enter the value in range 0 to 2!");
-                    continue;
-                }
-                else if(move1.getY() >= field[0].length || move1.getY() < 0) {
-                    System.out.println("Not valid value. Please enter the value in range 0 to 2!");
-                    continue;
-                }
-                else if (field[move1.getX()][move1.getY()] != 0) {
-                    System.out.println("Cell not empty! Please select a another one!");
-                    continue;
-                }
-                field[move1.getX()][move1.getY()] = 2;
-                break;
-            }
-         //   printFieldToConsole(field);
-            if (isWinPosition(field, 2)) {
-                System.out.println("Player 2 WIN!");
-                break;
-            }
-            if (isDrawPosition(field)) {
-                System.out.println("Tie result!");
-               break;
-           }
         }
 
-    }
+// select no player
+            System.out.println("Please enter the username (Player 2):");
+            String player2 = scanner.nextLine();
+
+            int[][] field = createField();
+
+            while (true) {
+                System.out.println("Player 1: ");
+                printFieldToConsole(field);
+
+                while (true) {
+                    Move move0 = getNextMove();
+                    if (move0.getX() >= field.length || move0.getX() < 0) {
+                        System.out.println("Not valid value. Please enter the value in range 0 to 2!");
+                        continue;
+                    } else if (move0.getY() >= field[0].length || move0.getY() < 0) {
+                        System.out.println("Not valid value. Please enter the value in range 0 to 2!");
+                        continue;
+                    } else if (field[move0.getX()][move0.getY()] != 0) {
+                        System.out.println("Cell not empty! Please select a another one!");
+                        continue;
+                    }
+                    field[move0.getX()][move0.getY()] = 1;
+                    break;
+                }
+                if (isDrawPosition(field)) {
+                    System.out.println("Tie result!");
+                    break;
+                }
+                if (isWinPosition(field, 1)) {
+                    System.out.println("Player 1 WIN!");
+                    break;
+                }
+
+                System.out.println("Player 2: ");
+                printFieldToConsole(field);
+                while (true) {
+                    Move move1 = getNextMove();
+                    if (move1.getX() >= field.length || move1.getX() < 0) {
+                        System.out.println("Not valid value. Please enter the value in range 0 to 2!");
+                        continue;
+                    } else if (move1.getY() >= field[0].length || move1.getY() < 0) {
+                        System.out.println("Not valid value. Please enter the value in range 0 to 2!");
+                        continue;
+                    } else if (field[move1.getX()][move1.getY()] != 0) {
+                        System.out.println("Cell not empty! Please select a another one!");
+                        continue;
+                    }
+                    field[move1.getX()][move1.getY()] = 2;
+                    break;
+                }
+                //   printFieldToConsole(field);
+                if (isWinPosition(field, 2)) {
+                    System.out.println("Player 2 WIN!");
+                    break;
+                }
+                if (isDrawPosition(field)) {
+                    System.out.println("Tie result!");
+                    break;
+                }
+            }
+
+        }
+
 }
