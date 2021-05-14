@@ -1,8 +1,6 @@
 package main;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Arrays;
 import java.util.Scanner;
 
@@ -20,9 +18,47 @@ public class TicTacToe {
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, USER, PASS);
     }
+    public static final String CREATE_TABLE =
+            "CREATE TABLE IF NOT EXISTS Players (" +
+                    "    nickname VARCHAR(255) PRIMARY KEY," +
+                    "    name VARCHAR(255) NOT NULL," +
+                    "    surname VARCHAR(255)NOT NULL," +
+                    "    age INT NOT NULL," +
+                    "    games INT NOT NULL DEFAULT 0," +
+                    "    moves INT NOT NULL DEFAULT 0" +
+                    ");";
+    /*  public static final String CREATE_TABLE1 =
+              "CREATE TABLE IF NOT EXISTS Games (" +
+                      "    nickname VARCHAR(255) PRIMARY KEY," +
+                      "    games_played INT," +
+                      "    moves_made INT" +
+
+                      ");";
+  */
+    public static final String INSERT_PLAYERS = "INSERT INTO Players" + "(nickname,name, surname, age) VALUES" +
+            "(?, ?, ?, ?);";
+   /* public static final String INSERT_GAMES = "INSERT INTO Games" +
+            "(nickname,games games_played, moves_made) VALUES" +
+            "(?, ?, ?);";
+
+    */
+    public static final String INSERT_GAMES = "INSERT INTO Players" +
+            "(nickname, games, moves) VALUES" +
+            "(?, ?, ?);";
+
+    private static void prepareDatabase(Connection connection) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            int update = statement.executeUpdate(CREATE_TABLE);
+            System.out.println("Table successfully created " + update);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
         try (Connection connection = getConnection()) {
+            prepareDatabase(connection);
+
             //Play TicTacToe
             TicTacToe game = new TicTacToe();
             game.play(connection);
@@ -85,19 +121,19 @@ public class TicTacToe {
     //NR.5 - Check Draw position
     public boolean isDrawPosition(int[][] field) {
         boolean empty = false;
-            for (int i = 0; i < field.length; i++) {
-                for (int j = 0; j < field.length; j++) {
-                    if (field[i][j] == 0) {
-                        empty = true;
-                        break;
-                    }
+        for (int i = 0; i < field.length; i++) {
+            for (int j = 0; j < field.length; j++) {
+                if (field[i][j] == 0) {
+                    empty = true;
+                    break;
                 }
             }
-            if (!empty && !isWinPosition(field, 1) && !isWinPosition(field, 2)) {
-                return true;
-            }
-            return false;
         }
+        if (!empty && !isWinPosition(field, 1) && !isWinPosition(field, 2)) {
+            return true;
+        }
+        return false;
+    }
 
 
     //NR. 6 Create two dimensional array
@@ -130,6 +166,44 @@ public class TicTacToe {
         }
 
     }
+    private boolean isPresent (Connection connection, String nickname) throws SQLException {
+        try (PreparedStatement c1 = connection.prepareStatement("SELECT count(1) as total FROM Players WHERE nickname = ?;")) {
+            c1.setString(1, nickname);
+            ResultSet r = c1.executeQuery();
+            int count = 0;
+            if (r.next()) {
+                count = r.getInt("total");
+            }
+            return count > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    private void insertPlayer (Connection connection, String nickname, String name, String surname, int age) throws SQLException {
+        try (PreparedStatement c1 = connection.prepareStatement(INSERT_PLAYERS)) {
+            c1.setString(1, nickname);
+            c1.setString(2, name);
+            c1.setString(3, surname);
+            c1.setInt(4, age);
+            c1.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void increaseGames (Connection connection, String nickname, int games, int moves) throws SQLException {
+        try (PreparedStatement c1 = connection.prepareStatement(INSERT_GAMES)) {
+            c1.setString(1, nickname);
+            c1.setInt(2, games);
+            c1.setInt(3, moves);
+            c1.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     //NR. 9 determine the order of moves of players 1 or 2, check if cell is not empty, check winner
     public void play(Connection connection) throws SQLException  {
@@ -137,11 +211,32 @@ public class TicTacToe {
 
         System.out.println("Please enter the nickname (Player 1):");
         String player1 = scanner.nextLine();
+        if(!this.isPresent(connection, player1)) {
+            System.out.println("User is not registered! Please enter name:");
+            String player1Name = scanner.nextLine();
+            System.out.println("Please enter surname:");
+            String player1Surname = scanner.nextLine();
+            System.out.println("Please enter the age:");
+            int player1Age = Integer.parseInt(scanner.nextLine());
+            insertPlayer(connection, player1, player1Name, player1Surname,player1Age);
+        }
+
 
 // select no player
         System.out.println("Please enter the nickname (Player 2):");
         String player2 = scanner.nextLine();
+        if(!this.isPresent(connection, player2)) {
+            System.out.println("User is not registered! Please enter name:");
+            String player2Name = scanner.nextLine();
+            System.out.println("Please enter surname:");
+            String player2Surname = scanner.nextLine();
+            System.out.println("Please enter the age:");
+            int player2Age = Integer.parseInt(scanner.nextLine());
+            insertPlayer(connection, player2, player2Name, player2Surname, player2Age);
+        }
 
+        increaseGames(connection, player1);
+        increaseGames(connection, player2);
         int[][] field = createField();
 
         while (true) {
@@ -168,7 +263,7 @@ public class TicTacToe {
             if (isDrawPosition(field)) {
                 System.out.println("Tie result!");
                 break;
-           }
+            }
             if (isWinPosition(field, 1)) {
                 System.out.println("Player 1 WIN!");
                 break;
@@ -193,15 +288,15 @@ public class TicTacToe {
                 field[move1.getX()][move1.getY()] = 2;
                 break;
             }
-         //   printFieldToConsole(field);
+            //   printFieldToConsole(field);
             if (isWinPosition(field, 2)) {
                 System.out.println("Player 2 WIN!");
                 break;
             }
             if (isDrawPosition(field)) {
                 System.out.println("Tie result!");
-               break;
-           }
+                break;
+            }
         }
 
     }
