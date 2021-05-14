@@ -15,6 +15,10 @@ public class SQL {
                     "    moves_made INT" +
 
                     ");";
+    public static final String ADD_USERNAME = "INSERT INTO Players" +
+            " (nickname,name,surname,age) VALUES" +
+            "(?, ?, ?, ?);";
+    public static final String CHECK_USERNAME = "SELECT FROM Players WHERE nickname = ?;";
 
 
 
