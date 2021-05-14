@@ -5,6 +5,7 @@ Game: Tic-Tac-Toe
 3. At the beginning of the game, the system asks for a username
 4. If the username is registered, then the player starts playing
 5. If the username is not registered, then a player have to enter the Name, Age
+6. in the enf of the game, ask - Want to continue, if YES - start again, if NO - Break
  
 Rules of the game: 
 1. The coordinates of the cell x and y have to be requested from each player
@@ -16,7 +17,7 @@ Rules of the game:
 7. The winning position have to be checked horizontally, vertically, diagonally
 8. If the three cells horizontally or vertically or diagonally are occupied by one player, then VICTORY
 9. If all cells are occupied and there is no winning position, then a draw
-10.The data of the players must be saved in the database - username, number of moves.
+10.The data of the players must be saved in the database - username, number of moves, number of victory
 
 Vlad: 
 1. Points  4, 5, 6, 7, 8 repeating themselves. The 7 would be enogh :)
