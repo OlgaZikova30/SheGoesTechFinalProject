@@ -22,34 +22,34 @@ public class TicTacToe {
             "CREATE TABLE IF NOT EXISTS Players (" +
                     "    nickname VARCHAR(255) PRIMARY KEY," +
                     "    name VARCHAR(255) NOT NULL," +
-                    "    surname VARCHAR(255)NOT NULL," +
-                    "    age INT NOT NULL," +
-                    "    games INT NOT NULL DEFAULT 0," +
-                    "    moves INT NOT NULL DEFAULT 0" +
+                    "    surname VARCHAR(255) NOT NULL," +
+                    "    age INT NOT NULL" +
                     ");";
-    /*  public static final String CREATE_TABLE1 =
+      public static final String CREATE_TABLE1 =
               "CREATE TABLE IF NOT EXISTS Games (" +
                       "    nickname VARCHAR(255) PRIMARY KEY," +
-                      "    games_played INT," +
-                      "    moves_made INT" +
+                      "    games INT NOT NULL DEFAULT 0," +
+                      "    moves INT NOT NULL DEFAULT 0" +
 
                       ");";
-  */
+
     public static final String INSERT_PLAYERS = "INSERT INTO Players" + "(nickname,name, surname, age) VALUES" +
             "(?, ?, ?, ?);";
-   /* public static final String INSERT_GAMES = "INSERT INTO Games" +
-            "(nickname,games games_played, moves_made) VALUES" +
-            "(?, ?, ?);";
-
-    */
-    public static final String INSERT_GAMES = "INSERT INTO Players" +
+    public static final String INSERT_GAMES = "INSERT INTO Games" +
             "(nickname, games, moves) VALUES" +
             "(?, ?, ?);";
 
+   /* public static final String INSERT_GAMES = "INSERT INTO Players" +
+            "(nickname, games, moves) VALUES" +
+            "(?, ?, ?);";
+
+
+    */
     private static void prepareDatabase(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             int update = statement.executeUpdate(CREATE_TABLE);
-            System.out.println("Table successfully created " + update);
+            int update1 = statement.executeUpdate(CREATE_TABLE1);
+            System.out.println("Tables successfully created " + update);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -193,11 +193,30 @@ public class TicTacToe {
         }
     }
 
-    private void increaseGames (Connection connection, String nickname, int games, int moves) throws SQLException {
+  /*  private void increaseMoves (Connection connection, String players, int [] [] field) throws SQLException {
         try (PreparedStatement c1 = connection.prepareStatement(INSERT_GAMES)) {
-            c1.setString(1, nickname);
-            c1.setInt(2, games);
-            c1.setInt(3, moves);
+            c1.setString(1, players);
+            ResultSet r = c1.executeQuery();
+            int move0 = 0;
+            move0 ++;
+            int move1 = 0;
+            move1 ++;
+            for (int i = 0; i < field.length; i++) {
+                for (int j = 0; j < field.length; j++) {
+
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+   */
+
+
+    private void increaseGames (Connection connection, String players) throws SQLException {
+        try (PreparedStatement c1 = connection.prepareStatement("update games set games = games + 1 where nickname = ?")) {
+            c1.setString(1, players);
             c1.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -235,8 +254,15 @@ public class TicTacToe {
             insertPlayer(connection, player2, player2Name, player2Surname, player2Age);
         }
 
+       /* int games = 0;
+        games ++;
+        int moves = 0;
+        moves ++;
+
+        */
         increaseGames(connection, player1);
         increaseGames(connection, player2);
+
         int[][] field = createField();
 
         while (true) {
