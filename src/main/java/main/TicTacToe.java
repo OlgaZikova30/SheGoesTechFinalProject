@@ -22,34 +22,43 @@ public class TicTacToe {
             "CREATE TABLE IF NOT EXISTS Players (" +
                     "    nickname VARCHAR(255) PRIMARY KEY," +
                     "    name VARCHAR(255) NOT NULL," +
-                    "    surname VARCHAR(255)NOT NULL," +
-                    "    age INT NOT NULL," +
-                    "    games INT NOT NULL DEFAULT 0," +
-                    "    moves INT NOT NULL DEFAULT 0" +
+                    "    surname VARCHAR(255) NOT NULL," +
+                    "    age INT NOT NULL" +
                     ");";
-    /*  public static final String CREATE_TABLE1 =
-              "CREATE TABLE IF NOT EXISTS Games (" +
-                      "    nickname VARCHAR(255) PRIMARY KEY," +
-                      "    games_played INT," +
-                      "    moves_made INT" +
-
-                      ");";
-  */
+    public static final String CREATE_TABLE1 =
+            "CREATE TABLE IF NOT EXISTS Games (" +
+                    "    nickname1 VARCHAR(255)," +
+                    "    nickname2 VARCHAR(255)," +
+                    "    id BIGINT auto_increment PRIMARY KEY " +
+                    ");";
+    public static final String CREATE_TABLE2 =
+            "CREATE TABLE IF NOT EXISTS Moves (" +
+                    "    gameId INT NOT NULL," +
+                    "    nickname VARCHAR(255)," +
+                    "    movesX INT NOT NULL DEFAULT 0," +
+                    "    movesY INT NOT NULL DEFAULT 0" +
+                    ");";
     public static final String INSERT_PLAYERS = "INSERT INTO Players" + "(nickname,name, surname, age) VALUES" +
             "(?, ?, ?, ?);";
-   /* public static final String INSERT_GAMES = "INSERT INTO Games" +
-            "(nickname,games games_played, moves_made) VALUES" +
-            "(?, ?, ?);";
 
-    */
-    public static final String INSERT_GAMES = "INSERT INTO Players" +
-            "(nickname, games, moves) VALUES" +
-            "(?, ?, ?);";
+    public static final String INSERT_GAMES = "INSERT INTO Games" +
+            "(nickname1, nickname2) VALUES" +
+            "(?,?);";
+    public static final String GET_GAMES_ID ="SELECT * from Games ORDER BY id DESC LIMIT 1";
+
+    public static final String INSERT_MOVES = "INSERT INTO Moves" +
+            "(gameId, nickname, movesX, movesY) VALUES" +
+            "(?,?,?,?);";
+    public static final String ALL_GAMES = "SELECT * FROM Games;";
+
+    public static final String GAME = "SELECT * FROM Games WHERE gameId = ?;";
 
     private static void prepareDatabase(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             int update = statement.executeUpdate(CREATE_TABLE);
-            System.out.println("Table successfully created " + update);
+            int update1 = statement.executeUpdate(CREATE_TABLE1);
+            int update2 = statement.executeUpdate(CREATE_TABLE2);
+            System.out.println("Tables successfully created " + update);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -135,7 +144,6 @@ public class TicTacToe {
         return false;
     }
 
-
     //NR. 6 Create two dimensional array
     //0 is mark of empty cell
     public int[][] createField() {
@@ -188,22 +196,27 @@ public class TicTacToe {
             c1.setString(3, surname);
             c1.setInt(4, age);
             c1.executeUpdate();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void increaseGames (Connection connection, String nickname, int games, int moves) throws SQLException {
-        try (PreparedStatement c1 = connection.prepareStatement(INSERT_GAMES)) {
-            c1.setString(1, nickname);
-            c1.setInt(2, games);
-            c1.setInt(3, moves);
-            c1.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
+    public void playAgain (Connection connection) throws SQLException {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Do you want play again? (Yes or No)");
+        String command = scanner.nextLine();
+
+        while ("Yes".equalsIgnoreCase(command) || "No".equalsIgnoreCase(command)) {
+            if ("Yes".equalsIgnoreCase(command)) {
+                TicTacToe game = new TicTacToe();
+                game.play(connection);
+        } else
+            System.out.println("GAME OVER!");
+            break;
         }
     }
-
 
     //NR. 9 determine the order of moves of players 1 or 2, check if cell is not empty, check winner
     public void play(Connection connection) throws SQLException  {
@@ -235,8 +248,26 @@ public class TicTacToe {
             insertPlayer(connection, player2, player2Name, player2Surname, player2Age);
         }
 
-        increaseGames(connection, player1);
-        increaseGames(connection, player2);
+        try (PreparedStatement c1 = connection.prepareStatement(INSERT_GAMES)) {
+            c1.setString(1, player1);
+            c1.setString(2, player2);
+            c1.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        int gameId = -1;
+        try (PreparedStatement c1 = connection.prepareStatement(GET_GAMES_ID)) {
+            c1.executeQuery();
+            ResultSet r = c1.executeQuery();
+            if (r.next()) {
+                gameId = r.getInt(1);
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         int[][] field = createField();
 
         while (true) {
@@ -258,14 +289,27 @@ public class TicTacToe {
                     continue;
                 }
                 field[move0.getX()][move0.getY()] = 1;
+
+                try (PreparedStatement c1 = connection.prepareStatement(INSERT_MOVES)) {
+                    c1.setInt(1, gameId);
+                    c1.setString(2, player1);
+                    c1.setInt(3, move0.getX());
+                    c1.setInt(4, move0.getY());
+                    c1.execute();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 break;
             }
             if (isDrawPosition(field)) {
                 System.out.println("Tie result!");
+                playAgain(connection);
                 break;
             }
             if (isWinPosition(field, 1)) {
                 System.out.println("Player 1 WIN!");
+                playAgain(connection);
                 break;
             }
 
@@ -286,15 +330,28 @@ public class TicTacToe {
                     continue;
                 }
                 field[move1.getX()][move1.getY()] = 2;
+
+                try (PreparedStatement c1 = connection.prepareStatement(INSERT_MOVES)) {
+                    c1.setInt(1, gameId);
+                    c1.setString(2, player2);
+                    c1.setInt(3, move1.getX());
+                    c1.setInt(4, move1.getY());
+                    c1.executeUpdate();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 break;
             }
             //   printFieldToConsole(field);
             if (isWinPosition(field, 2)) {
                 System.out.println("Player 2 WIN!");
+                playAgain(connection);
                 break;
             }
             if (isDrawPosition(field)) {
                 System.out.println("Tie result!");
+                playAgain(connection);
                 break;
             }
         }
